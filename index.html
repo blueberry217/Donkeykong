@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Donkey Kong</title>
+    <style>
+        body {
+            align-content: space-around;
+            background-color: #202830;
+            color: #ffffff;
+            background-image: url("background.jpg");
+            justify-content: center;
+            background-repeat: no-repeat;
+            /* position: relative; */
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 60%;
+        }
+
+        #extendedlevel {
+            /* position: absolute; */
+            right: 136px;
+        }
+
+        #donkeykong {
+            width: 120px;
+            height: 80px;
+            position: absolute;
+            top: 225px;
+            left: 0px;
+        }
+
+        img#banaana {
+            position: absolute;
+            top: 265px;
+            width: 60px;
+            height: 40px;
+        }
+
+        .left {
+            -webkit-transform: scaleX(-1);
+            transform: scaleX(-1);
+        }
+
+        #gameover {
+            position: relative;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            vertical-align: middle;
+            font-family: arial;
+            font-weight: bold;
+            color: rbga(1.0, 1.0, 1.0, 0.5);
+            font-size: 72pt
+        }
+    </style>
+</head>
+
+<body onkeydown="handleKeyDown(event)">
+    <div id="container">
+        <div id="gameover" style="display:none;">Game Over</div>
+        <img id="extendedlevel" src="background.jpg" alt="">
+        <img id="donkeykong" src="dkgif.gif" alt="DonkeyKong">
+        <img id="banaana" src="banaantr.png" height="42" width="42">
+    </div>
+    <script>
+        // Donkey kong HTMLelement
+        var dkElement = document.getElementById('donkeykong');
+        // Banana HTMLelement
+        var bananaElement = document.getElementById('banaana');
+        // Gameover HTMLelement
+        var gameoverElement = document.getElementById('gameover');
+        // Width of game screen
+        var screenWidth = dkElement.parentElement.offsetWidth;
+        // Current score
+        var score = 0;
+        // Whether game is paused
+        var paused = false;
+
+        // Gets the position of the center of the banana
+        function getBananaPosition() {
+            // Get style value
+            let styleValue = bananaElement.style.left;
+            // use substring to cut out "px", parse it to an int, and return 0 if parsing fails
+            let bananaPos = parseInt(styleValue.substring(0, styleValue.length - 2)) || 0;
+            // Add half the width of the banana, to get the position of the center
+            return bananaPos + bananaElement.offsetWidth / 2;
+        }
+        // Moves the banana to a random point
+        function moveBanana() {
+            let dkWidth = dkElement.offsetWidth / 2;
+            let bananaWidth = bananaElement.offsetWidth / 2;
+            let widthDiff = Math.abs(dkWidth - bananaWidth);
+            let percent = Math.random();
+            let pixels = Math.floor(percent * screenWidth);
+            if (pixels < widthDiff) pixels = widthDiff;
+            bananaElement.style.left = pixels + "px";
+        }
+        moveBanana();
+
+        // Gets the position of the left side of DK
+        function getDKPosition() {
+            // Get style value
+            let styleValue = dkElement.style.left;
+            // use substring to cut out "px", parse it to an int, and return 0 if parsing fails
+            return parseInt(styleValue.substring(0, styleValue.length - 2)) || 0;
+        }
+        // Sets the position of the left side of DK
+        function setDKPosition(newPos) {
+            // Clamp position to make sure DK can't go out of bounds
+            if (newPos < 0) newPos = 0;
+            if (newPos > screenWidth) newPos = screenWidth;
+            // Set position
+            dkElement.style.left = newPos + "px";
+        }
+
+        // Handles keydown
+        function handleKeyDown(event) {
+            if (paused) return;
+
+            var x = event.which || event.keyCode;
+            switch (x) {
+                case 65: // left key
+                    dkElement.classList.add("left");
+                    moveLeft();
+                    break;
+                case 68: // right key
+                    dkElement.classList.remove("left");
+                    moveRight();
+                    break;
+            }
+        }
+
+        // Checks whether DK has reached the banana
+        function checkCollision() {
+            // Get position of middle of DK by adding half its width to its position
+            let dkMiddle = getDKPosition() + dkElement.offsetWidth / 2;
+            // Get distance between middle of DK and middle of banana
+            let distance = dkMiddle - getBananaPosition();
+            console.log(dkMiddle);
+            console.log(getBananaPosition());
+            console.log(distance);
+            // If distance is less than 10
+            if (Math.abs(distance) < 10) {
+                // Calculate score
+                addScore();
+            }
+        }
+
+        // Increment score, reset game if score reaches 10
+        function addScore() {
+            // Increment score
+            score++;
+            if (score >= 10) {
+                // Display gameover screen
+                gameoverElement.style.display = 'block';
+                paused = true;
+                setTimeout(() => resetGame(), 2000);
+            } else {
+                // Move banana to new position
+                moveBanana();
+            }
+        }
+
+        // Reset everything
+        function resetGame() {
+            paused = false;
+            // Reset score
+            score = 0;
+            // Reset DK position
+            setDKPosition(0);
+            // move banana to random position
+            moveBanana();
+            // Hide gameover screen
+            gameoverElement.style.display = 'none';
+        }
+
+        // Move DK left 10px
+        function moveLeft() {
+            let currentPos = getDKPosition();
+            let nextPos = currentPos - 10;
+            setDKPosition(nextPos);
+            checkCollision();
+        }
+
+        // Move DK right 10px
+        function moveRight() {
+            let currentPos = getDKPosition();
+            let nextPos = currentPos + 10;
+            setDKPosition(nextPos);
+            checkCollision();
+        }
+    </script>
+</body>
+
+</html>
